@@ -52,6 +52,27 @@ it('explains why a component cannot be previewed instead of crashing', function 
         ->assertSee('publishedAt');
 });
 
+it('adds raw head markup to the preview', function (): void {
+    config()->set('blade-storybook.preview.head', '<link rel="stylesheet" href="https://fonts.example/nunito.css">');
+
+    $this->get(route('blade-storybook.preview', [
+        'component' => str_replace('\\', '.', FixtureButton::class),
+    ]))
+        ->assertOk()
+        ->assertSee('<link rel="stylesheet" href="https://fonts.example/nunito.css">', false);
+});
+
+it('includes a head view in the preview', function (): void {
+    view()->addNamespace('storybook-test', __DIR__.'/Fixtures/views');
+    config()->set('blade-storybook.preview.head', 'storybook-test::head');
+
+    $this->get(route('blade-storybook.preview', [
+        'component' => str_replace('\\', '.', FixtureButton::class),
+    ]))
+        ->assertOk()
+        ->assertSee('<meta name="storybook-head-fixture" content="1">', false);
+});
+
 it('returns 404 for an unknown component', function (): void {
     $this->get(route('blade-storybook.preview', ['component' => 'Nope']))->assertNotFound();
 });

@@ -60,6 +60,13 @@ Everything lives in `config/blade-storybook.php`:
 - `middleware` – the full stack for every route. Add auth here when exposing it beyond local.
 - `paths` – directories scanned for components.
 - `preview.assets` – Vite entry points loaded in the preview iframe, so components look like they do in the app.
+- `preview.head` – extra markup for the preview `<head>`, for anything your layout loads outside of Vite (web fonts, meta tags, inline scripts). Use a view name or a raw HTML string:
+
+  ```php
+  'head' => 'partials.storybook-head',
+  // or
+  'head' => '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap">',
+  ```
 - `preview.body_class` – classes applied to the preview body.
 - `viewports` – widths in pixels for the viewport buttons. `null` means full width.
 

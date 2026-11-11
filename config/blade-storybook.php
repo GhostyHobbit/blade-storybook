@@ -51,12 +51,18 @@ return [
     | The Vite entry points loaded inside the preview iframe, so components
     | look exactly as they do in the application, plus the classes applied to
     | the preview body.
+    |
+    | "head" adds extra markup to the preview <head>, for things your layout
+    | loads outside of Vite, such as web fonts. Use a view name (for example
+    | "partials.storybook-head") or a raw HTML string.
     */
     'preview' => [
         'assets' => [
             'resources/css/app.css',
             'resources/js/app.js',
         ],
+
+        'head' => null,
 
         'body_class' => 'p-8',
     ],
