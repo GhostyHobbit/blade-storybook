@@ -52,7 +52,42 @@ final readonly class PreviewController
             'component' => $component,
             'html' => $html,
             'error' => $error,
+            'head' => $this->livewireAssets('styles').$this->markup(config('blade-storybook.preview.head')),
+            'scripts' => $this->livewireAssets('scripts').$this->markup(config('blade-storybook.preview.scripts')),
         ]);
+    }
+
+    /**
+     * Resolves a configured view name or raw HTML string into markup.
+     */
+    private function markup(mixed $value): string
+    {
+        if (! is_string($value) || $value === '') {
+            return '';
+        }
+
+        if (! str_contains($value, '<') && $this->views->exists($value)) {
+            return $this->views->make($value)->render();
+        }
+
+        return $value;
+    }
+
+    /**
+     * Livewire ships Alpine, but only injects it on pages that render a
+     * Livewire component. The preview usually does not, so add it here.
+     *
+     * @param  'styles'|'scripts'  $type
+     */
+    private function livewireAssets(string $type): string
+    {
+        $assets = 'Livewire\Mechanisms\FrontendAssets\FrontendAssets';
+
+        if (! config('blade-storybook.preview.livewire', true) || ! class_exists($assets)) {
+            return '';
+        }
+
+        return (string) $assets::$type();
     }
 
     /**

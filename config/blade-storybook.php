@@ -52,9 +52,12 @@ return [
     | look exactly as they do in the application, plus the classes applied to
     | the preview body.
     |
-    | "head" adds extra markup to the preview <head>, for things your layout
-    | loads outside of Vite, such as web fonts. Use a view name (for example
-    | "partials.storybook-head") or a raw HTML string.
+    | "head" and "scripts" add markup that your layout loads outside of Vite,
+    | such as web fonts or a CDN build of Alpine. "head" goes into <head>,
+    | "scripts" at the end of <body>. Use a view name or a raw HTML string.
+    |
+    | "livewire" adds Livewire's styles and scripts (which include Alpine)
+    | when Livewire is installed, so Alpine-driven components work.
     */
     'preview' => [
         'assets' => [
@@ -63,6 +66,10 @@ return [
         ],
 
         'head' => null,
+
+        'scripts' => null,
+
+        'livewire' => true,
 
         'body_class' => 'p-8',
     ],

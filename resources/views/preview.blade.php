@@ -40,5 +40,7 @@
     @else
         {!! $html !!}
     @endif
+
+    {!! $scripts !!}
 </body>
 </html>

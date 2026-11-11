@@ -60,14 +60,20 @@ Everything lives in `config/blade-storybook.php`:
 - `middleware` – the full stack for every route. Add auth here when exposing it beyond local.
 - `paths` – directories scanned for components.
 - `preview.assets` – Vite entry points loaded in the preview iframe, so components look like they do in the app.
-- `preview.head` – extra markup for the preview `<head>`, for anything your layout loads outside of Vite (web fonts, meta tags, inline scripts). Use a view name or a raw HTML string:
-
-  ```php
-  'head' => 'partials.storybook-head',
-  // or
-  'head' => '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap">',
-  ```
+- `preview.head` – extra markup for the preview `<head>`, for anything your layout loads outside of Vite, such as web fonts. A view name or a raw HTML string.
+- `preview.scripts` – extra markup at the end of the preview `<body>`, such as a CDN build of Alpine or other scripts your layout adds. A view name or a raw HTML string.
+- `preview.livewire` – when Livewire is installed, its styles and scripts (which bundle Alpine) are added to the preview, so components using `x-data` work. Set to `false` to turn this off.
 - `preview.body_class` – classes applied to the preview body.
+
+```php
+'preview' => [
+    'assets' => ['resources/css/app.css', 'resources/js/app.js'],
+    'head' => '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700&display=swap">',
+    'scripts' => 'partials.storybook-scripts', // a view
+],
+```
+
+Without Livewire, Alpine has to come from somewhere: start it in one of your `preview.assets` entries or load it through `preview.scripts`.
 - `viewports` – widths in pixels for the viewport buttons. `null` means full width.
 
 ## Testing
