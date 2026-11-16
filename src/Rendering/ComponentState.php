@@ -172,11 +172,13 @@ final readonly class ComponentState
 
     private static function cast(PropMetadata $prop, mixed $value): mixed
     {
-        if ($value === '' && $prop->isNullable()) {
+        $isEmpty = $value === '' || $value === null;
+
+        if ($isEmpty && $prop->isNullable()) {
             return null;
         }
 
-        if ($value === '' && $prop->usesEmptyTextForFalse()) {
+        if ($isEmpty && $prop->usesEmptyTextForFalse()) {
             return false;
         }
 
