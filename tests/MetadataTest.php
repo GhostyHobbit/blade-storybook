@@ -59,7 +59,7 @@ it('falls back to a single default story and keeps declared slots', function ():
     $button = Storybook::find(str_replace('\\', '.', FixtureButton::class));
     $card = Storybook::find(str_replace('\\', '.', FixtureCard::class));
 
-    expect($button->stories()->map->name->all())->toBe(['Primary', 'Secondary small'])
+    expect($button->stories()->map->name->all())->toBe(['Primary', 'Secondary small', 'With nested component'])
         ->and($button->slots()->map->name->all())->toBe(['default', 'footer'])
         ->and($card->stories()->map->name->all())->toBe(['Default']);
 });

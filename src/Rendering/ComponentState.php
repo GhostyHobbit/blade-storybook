@@ -22,6 +22,7 @@ final readonly class ComponentState
      * @param  string|null  $storyError  Set when the story's $using method failed.
      * @param  string|null  $width  Width of the box the component is previewed in; null is full width.
      * @param  string|null  $defaultWidth  The width from the story or #[Storybook], before the control changed it.
+     * @param  list<string>  $bladeSlots  Slots whose value comes from code (a story or #[Slot] default) and is compiled as Blade.
      */
     private function __construct(
         public ComponentMetadata $component,
@@ -31,6 +32,7 @@ final readonly class ComponentState
         public ?string $storyError = null,
         public ?string $width = null,
         public ?string $defaultWidth = null,
+        public array $bladeSlots = [],
     ) {}
 
     /**
@@ -82,9 +84,17 @@ final readonly class ComponentState
         }
 
         $slots = [];
+        $bladeSlots = [];
 
         foreach ($component->slots as $slot) {
             $slots[$slot->name] = self::slotValue($slot, $storySlots, $slotInput);
+
+            // Only content defined in code is compiled as Blade, so nested
+            // components render. Text edited in the controls arrives through the
+            // URL and stays plain text, otherwise a shared link could run PHP.
+            if ($slots[$slot->name] === self::slotValue($slot, $storySlots, [])) {
+                $bladeSlots[] = $slot->name;
+            }
         }
 
         $defaultWidth = $story->width ?? $component->width;
@@ -97,6 +107,7 @@ final readonly class ComponentState
             storyError: $storyError,
             width: $widthInput === null ? $defaultWidth : PreviewWidth::normalize($widthInput),
             defaultWidth: $defaultWidth,
+            bladeSlots: $bladeSlots,
         );
     }
 

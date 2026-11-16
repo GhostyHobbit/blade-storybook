@@ -50,6 +50,27 @@ it('lets controls override story values', function (): void {
         ->assertSee('Verzenden');
 });
 
+it('renders components nested in story slots', function (): void {
+    $this->get(route('blade-storybook.preview', [
+        'component' => str_replace('\\', '.', FixtureButton::class),
+        'story' => 'with-nested-component',
+        'slots' => ['default' => 'Opslaan', 'footer' => '<x-fixture-input prefix="nested" />'],
+    ]))
+        ->assertOk()
+        ->assertSee('<span><div data-prefix="nested"><input></div></span>', false);
+});
+
+it('keeps slot text edited in the controls as escaped text', function (): void {
+    $this->get(route('blade-storybook.preview', [
+        'component' => str_replace('\\', '.', FixtureButton::class),
+        'story' => 'with-nested-component',
+        'slots' => ['footer' => '<x-fixture-input /> {{ 1 + 1 }}'],
+    ]))
+        ->assertOk()
+        ->assertSee('&lt;x-fixture-input /&gt; {{ 1 + 1 }}', false)
+        ->assertDontSee('data-prefix', false);
+});
+
 it('explains why a component cannot be previewed instead of crashing', function (): void {
     $this->get(route('blade-storybook.preview', [
         'component' => str_replace('\\', '.', FixtureCard::class),

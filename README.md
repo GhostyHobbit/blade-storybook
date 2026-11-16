@@ -48,7 +48,7 @@ final class ButtonComponent extends Component
 | --- | --- | --- |
 | `#[Storybook]` | class | Adds the component to the storybook under a category. |
 | `#[Story]` | class, repeatable | A named example with fixed props and slots. |
-| `#[Slot]` | class, repeatable | An editable slot with a starting value. Plain text only. |
+| `#[Slot]` | class, repeatable | An editable slot with a starting value. Slot content from `#[Slot]` and `#[Story]` is compiled as Blade, so nested components like `<x-button>` render; text edited in the controls is shown as plain text. |
 | `#[Prop]` | parameter | Optional extra info: `options` renders a dropdown, `description` shows help text. Name, type and default come from reflection. |
 
 ### Container width
