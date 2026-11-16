@@ -88,6 +88,8 @@ final class ProfileStories
 
 Use `make()`, not `create()`: nothing is written to the database. Factories ignore `$guarded`, and relations you set with `setRelation()` are used as is. If the method throws, the preview shows the error instead of the component.
 
+As a safety net, every storybook page runs inside a database transaction that is always rolled back. A story that slips and writes anyway leaves no rows behind. This happens, for example, when a factory definition contains `'user_id' => User::factory()`, which `make()` still creates. Two side effects remain: auto-increment counters still go up, and anything outside the database still happens, such as queued jobs on Redis or mail sent from a model observer. So keep overriding foreign keys and setting relations. Configure it under `rollback` in the config: list every connection your stories touch.
+
 ## Configuration
 
 Everything lives in `config/blade-storybook.php`:
@@ -101,6 +103,7 @@ Everything lives in `config/blade-storybook.php`:
 - `preview.scripts` – extra markup at the end of the preview `<body>`, such as a CDN build of Alpine or other scripts your layout adds. A view name or a raw HTML string.
 - `preview.livewire` – when Livewire is installed, its styles and scripts (which bundle Alpine) are added to the preview, so components using `x-data` work. Set to `false` to turn this off.
 - `preview.body_class` – classes applied to the preview body.
+- `rollback.enabled` / `rollback.connections` – roll back every database write made while rendering the storybook. `null` is the default connection.
 
 ```php
 'preview' => [

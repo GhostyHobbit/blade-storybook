@@ -76,6 +76,23 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Database rollback
+    |--------------------------------------------------------------------------
+    |
+    | Stories should build their data with make(), but a factory that still
+    | creates a related model (a "user_id" => User::factory() in a definition)
+    | would add a row on every page load. Each storybook request therefore
+    | runs inside a transaction that is always rolled back. List every
+    | connection your stories may write to; null is the default connection.
+    */
+    'rollback' => [
+        'enabled' => true,
+
+        'connections' => [null],
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
     | Viewports
     |--------------------------------------------------------------------------
     |
