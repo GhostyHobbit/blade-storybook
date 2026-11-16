@@ -8,6 +8,7 @@ window.storybook = (config) => ({
     stories: config.stories ?? {},
     props: { ...config.props },
     slots: { ...config.slots },
+    width: config.width ?? '',
     viewport: null,
 
     init() {
@@ -32,6 +33,9 @@ window.storybook = (config) => ({
             params.set(`slots[${name}]`, String(value ?? ''))
         })
 
+        // Always sent, so clearing the field overrides a width set on the story.
+        params.set('width', String(this.width ?? '').trim())
+
         return params
     },
 
@@ -50,6 +54,7 @@ window.storybook = (config) => ({
 
         this.props = { ...story.props }
         this.slots = { ...story.slots }
+        this.width = story.width ?? ''
     },
 
     syncUrl() {

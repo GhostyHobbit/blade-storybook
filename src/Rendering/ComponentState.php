@@ -8,6 +8,7 @@ use ItsRD\BladeStorybook\Metadata\ComponentMetadata;
 use ItsRD\BladeStorybook\Metadata\ControlType;
 use ItsRD\BladeStorybook\Metadata\PropMetadata;
 use ItsRD\BladeStorybook\Metadata\SlotMetadata;
+use Throwable;
 
 /**
  * The values a component is previewed with: defaults, overridden by the
@@ -18,27 +19,51 @@ final readonly class ComponentState
     /**
      * @param  array<string, mixed>  $props
      * @param  array<string, string>  $slots
+     * @param  string|null  $storyError  Set when the story's $using method failed.
+     * @param  string|null  $width  Width of the box the component is previewed in; null is full width.
+     * @param  string|null  $defaultWidth  The width from the story or #[Storybook], before the control changed it.
      */
     private function __construct(
         public ComponentMetadata $component,
         public ?string $storyId,
         public array $props,
         public array $slots,
+        public ?string $storyError = null,
+        public ?string $width = null,
+        public ?string $defaultWidth = null,
     ) {}
 
     /**
      * @param  array<string, mixed>  $propInput
      * @param  array<string, mixed>  $slotInput
+     * @param  string|null  $widthInput  The width control's value. Null when it was not sent; an empty string clears the width.
      */
     public static function resolve(
         ComponentMetadata $component,
         ?string $storyId = null,
         array $propInput = [],
         array $slotInput = [],
+        ?string $widthInput = null,
     ): self {
         $story = $component->story($storyId);
-        $storyProps = $story === null ? [] : $story->props;
         $storySlots = $story === null ? [] : $story->slots;
+        $storyProps = [];
+        $storyError = null;
+
+        if ($story !== null) {
+            try {
+                $storyProps = $story->resolveProps();
+            } catch (Throwable $exception) {
+                $storyProps = $story->props;
+                $storyError = sprintf(
+                    'Story "%s" could not build its props: %s (%s:%d)',
+                    $story->name,
+                    $exception->getMessage(),
+                    basename($exception->getFile()),
+                    $exception->getLine()
+                );
+            }
+        }
 
         $props = [];
 
@@ -62,12 +87,46 @@ final readonly class ComponentState
             $slots[$slot->name] = self::slotValue($slot, $storySlots, $slotInput);
         }
 
+        $defaultWidth = $story->width ?? $component->width;
+
         return new self(
             component: $component,
             storyId: $story?->id(),
             props: $props,
             slots: $slots,
+            storyError: $storyError,
+            width: $widthInput === null ? $defaultWidth : PreviewWidth::normalize($widthInput),
+            defaultWidth: $defaultWidth,
         );
+    }
+
+    /**
+     * Why this state cannot be rendered, or null when it can.
+     */
+    public function blockingReason(): ?string
+    {
+        if ($this->storyError !== null) {
+            return $this->storyError;
+        }
+
+        $blocking = $this->component->blockingProps($this->props);
+
+        if ($blocking->isEmpty()) {
+            return null;
+        }
+
+        $reason = sprintf(
+            'This story does not provide values for: %s. Set them in a #[Story], inline or through a using method.',
+            $blocking->map->name->implode(', ')
+        );
+
+        $alternatives = $this->component->renderableStories();
+
+        if ($alternatives->isNotEmpty()) {
+            $reason .= sprintf(' Stories that can be previewed: %s.', $alternatives->map->name->implode(', '));
+        }
+
+        return $reason;
     }
 
     /**
@@ -106,6 +165,10 @@ final readonly class ComponentState
             return null;
         }
 
+        if ($value === '' && $prop->usesEmptyTextForFalse()) {
+            return false;
+        }
+
         return match ($prop->control) {
             ControlType::Toggle => filter_var($value, FILTER_VALIDATE_BOOL),
             ControlType::Number => str_contains((string) $value, '.') ? (float) $value : (int) $value,
@@ -129,6 +192,12 @@ final readonly class ComponentState
             }
 
             $value = $this->props[$prop->name];
+
+            if ($value === false && $prop->usesEmptyTextForFalse()) {
+                $values[$prop->name] = '';
+
+                continue;
+            }
 
             $values[$prop->name] = is_bool($value) || is_int($value) || is_float($value) || is_string($value)
                 ? $value
@@ -175,7 +244,13 @@ final readonly class ComponentState
         }
 
         foreach ($this->changedProps() as $name => $value) {
-            if (is_array($value)) {
+            if (is_array($value) || is_object($value)) {
+                continue;
+            }
+
+            if ($value === false && $this->component->prop($name)?->usesEmptyTextForFalse()) {
+                $query['props'][$name] = '';
+
                 continue;
             }
 
@@ -184,6 +259,10 @@ final readonly class ComponentState
 
         foreach ($this->slots as $name => $value) {
             $query['slots'][$name] = $value;
+        }
+
+        if ($this->width !== $this->defaultWidth) {
+            $query['width'] = $this->width ?? '';
         }
 
         return $query;

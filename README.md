@@ -51,6 +51,43 @@ final class ButtonComponent extends Component
 | `#[Slot]` | class, repeatable | An editable slot with a starting value. Plain text only. |
 | `#[Prop]` | parameter | Optional extra info: `options` renders a dropdown, `description` shows help text. Name, type and default come from reflection. |
 
+### Container width
+
+Components that size themselves to their parent can be previewed inside a box of a set width. Set a default on the component, override it per story, and change it live with the **Container width** field in the sidebar. Bare numbers are pixels; `px`, `%`, `rem`, `em`, `vw` and `ch` are accepted. An empty field means full width.
+
+```php
+#[Storybook(category: 'Profiles', width: '320px')]
+#[Story('Wide', ['user' => ...], width: '50%')]
+```
+
+### Objects, DTOs and models
+
+Props typed as an object get no control, but a story can supply them. Simple DTOs can be built inline, since PHP allows `new` in attributes:
+
+```php
+#[Story('Guest', ['user' => new UserData(name: 'Guest', role: Role::Guest)])]
+```
+
+Anything that needs real code, such as factories, guarded models or DTOs built from models, goes in a static method referenced with `using`. It runs when the story is shown, and the array it returns overrides the inline props. Controls still apply on top.
+
+```php
+#[Story('Admin', using: [ProfileStories::class, 'admin'])]
+final class ProfileCard extends Component { /* ... */ }
+
+final class ProfileStories
+{
+    public static function admin(): array
+    {
+        $user = User::factory()->admin()->make(['name' => 'Jan']);
+        $user->setRelation('dogs', Dog::factory()->count(2)->make());
+
+        return ['user' => UserData::fromModel($user)];
+    }
+}
+```
+
+Use `make()`, not `create()`: nothing is written to the database. Factories ignore `$guarded`, and relations you set with `setRelation()` are used as is. If the method throws, the preview shows the error instead of the component.
+
 ## Configuration
 
 Everything lives in `config/blade-storybook.php`:

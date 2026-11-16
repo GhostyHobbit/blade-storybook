@@ -26,7 +26,7 @@ final class ComponentRenderer
         $component = $componentState->component;
 
         $attributes = $component->allProps()
-            ->filter(fn (PropMetadata $prop): bool => $prop->isLiteral() && array_key_exists($prop->name, $componentState->props))
+            ->filter(fn (PropMetadata $prop): bool => array_key_exists($prop->name, $componentState->props))
             ->map(fn (PropMetadata $prop): string => sprintf(':%s="$props[\'%s\']"', $prop->attributeName, $prop->name))
             ->implode(' ');
 

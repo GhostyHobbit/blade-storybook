@@ -8,9 +8,6 @@
     } catch (Throwable $exception) {
         $viteError = $exception->getMessage();
     }
-
-    $head = config('blade-storybook.preview.head');
-    $headView = is_string($head) && $head !== '' && ! str_contains($head, '<') && view()->exists($head) ? $head : null;
 @endphp
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
@@ -19,11 +16,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
     <title>{{ $component->name }}</title>
-    @if ($headView)
-        @include($headView)
-    @elseif (is_string($head))
-        {!! $head !!}
-    @endif
+    {!! $head !!}
     {!! $viteTags !!}
 </head>
 <body class="{{ config('blade-storybook.preview.body_class', 'p-8') }}">
@@ -36,6 +29,11 @@
     @if ($error)
         <div style="padding:.75rem 1rem;border-radius:.5rem;background:#fee2e2;color:#991b1b;font:13px/1.5 ui-monospace,monospace">
             {{ $error }}
+        </div>
+    @elseif ($width)
+        {{-- A stand-in parent for components that size themselves to their container. --}}
+        <div data-storybook-container style="width: {{ $width }}; outline: 1px dashed rgba(148, 163, 184, .6); outline-offset: 4px;">
+            {!! $html !!}
         </div>
     @else
         {!! $html !!}
