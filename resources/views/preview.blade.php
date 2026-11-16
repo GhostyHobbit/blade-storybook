@@ -31,7 +31,6 @@
             {{ $error }}
         </div>
     @elseif ($width)
-        {{-- A stand-in parent for components that size themselves to their container. --}}
         <div data-storybook-container style="width: {{ $width }}; outline: 1px dashed rgba(148, 163, 184, .6); outline-offset: 4px;">
             {!! $html !!}
         </div>

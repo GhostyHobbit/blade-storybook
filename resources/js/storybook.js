@@ -33,7 +33,6 @@ window.storybook = (config) => ({
             params.set(`slots[${name}]`, String(value ?? ''))
         })
 
-        // Always sent, so clearing the field overrides a width set on the story.
         params.set('width', String(this.width ?? '').trim())
 
         return params
