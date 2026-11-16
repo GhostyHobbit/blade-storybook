@@ -54,10 +54,18 @@ it('renders components nested in story slots', function (): void {
     $this->get(route('blade-storybook.preview', [
         'component' => str_replace('\\', '.', FixtureButton::class),
         'story' => 'with-nested-component',
-        'slots' => ['default' => 'Opslaan', 'footer' => '<x-fixture-input prefix="nested" />'],
     ]))
         ->assertOk()
-        ->assertSee('<span><div data-prefix="nested"><input></div></span>', false);
+        ->assertSee('<div data-prefix="nested"><input></div>', false)
+        ->assertDontSee('&lt;x-fixture-input', false);
+});
+
+it('leaves unedited slots out of the url so their html never travels through it', function (): void {
+    $component = Storybook::find(str_replace('\\', '.', FixtureButton::class));
+
+    expect(ComponentState::resolve($component, 'with-nested-component')->query())->not->toHaveKey('slots')
+        ->and(ComponentState::resolve($component, 'with-nested-component', slotInput: ['footer' => 'Edited'])->query()['slots'])
+        ->toBe(['footer' => 'Edited']);
 });
 
 it('keeps slot text edited in the controls as escaped text', function (): void {

@@ -271,6 +271,10 @@ final readonly class ComponentState
         }
 
         foreach ($this->slots as $name => $value) {
+            if (in_array($name, $this->bladeSlots, true)) {
+                continue;
+            }
+
             $query['slots'][$name] = $value;
         }
 
